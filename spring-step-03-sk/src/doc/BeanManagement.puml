@@ -1,0 +1,57 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface BeanFactory {
+    Object getBean(String name);
+    Object getBean(String name, Object... args);
+}
+note left of BeanFactory : 对外接口
+
+interface SingletonBeanRegistry {
+    void registerSingleton(String beanName, Object singltonObject);
+    Object getSingleton(String beanName);
+}
+note right of SingletonBeanRegistry : 提供单例的注入和获取能力
+
+class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
+     private Map<String, Object> singletonObjects = new HashMap<>();
+}
+note right of DefaultSingletonBeanRegistry : 内部维护map以提供单例对象管理能力
+
+abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory {
+    public Object getBean(String name);
+    BeanDefinition getBeanDefinition(String name);
+    Object createBean(String name, BeanDefinition beanDefinition);
+}
+note left of AbstractBeanFactory : getBean为整个主流程函数\n （1）获取单例，获取到直接返回；这里利用父类能力\n（2）获取BeanDefinition；子类实现\n（3）创建bean实例；子类实现
+
+interface InstantiationStrategy {
+    instatiate(BeanDefinition beanDefiniation, String beanName, Constructor constructor, Object[] args);
+}
+note right of InstantiationStrategy : 策略模式，实现创建对象实例的能力
+
+abstract AbstractAutowireCapableBeanFactory extends AbstractBeanFactory {
+    Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args);
+}
+note left of AbstractAutowireCapableBeanFactory : 单一职责，实现创建bean的能力。
+
+interface BeanDefinitionRegistry {
+    void registerBeanDefinition(String name, BeanDefinition beanDefinition);
+}
+note right of BeanDefinitionRegistry : 提供BeanDefinition的注册能力。
+
+class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory {
+    private Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+    void registerBeanDefinition(String name, BeanDefinition beanDefinition);
+    BeanDefinition getBeanDefinition(String name);
+}
+note left of DefaultListableBeanFactory : 类本身只提供了BeanDefinition的管理能力，单一职责\n但是因为继承的关系，\n这个是真正的可以完整完成bean的管理的容器类。
+
+InstantiationStrategy <.. AbstractAutowireCapableBeanFactory
+InstantiationStrategy <|-up- SimpleInstantiationStrategy
+InstantiationStrategy <|-up- CglibSubClassingInstantiationStrategy
+
+BeanDefinitionRegistry <|.down. DefaultListableBeanFactory
+BeanDefinition <.left. DefaultListableBeanFactory
+@enduml
