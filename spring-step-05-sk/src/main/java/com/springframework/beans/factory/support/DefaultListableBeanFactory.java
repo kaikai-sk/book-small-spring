@@ -16,6 +16,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
     }
 
     @Override
+    public boolean containsBeanDefinition(String beanName) {
+        return beanDefinitionMap.containsKey(beanName);
+    }
+
+    @Override
     protected BeanDefinition getBeanDefinition(String name) throws BeansException {
         BeanDefinition beanDefinition = this.beanDefinitionMap.get(name);
         if (beanDefinition == null) {
