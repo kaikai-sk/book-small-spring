@@ -1,0 +1,43 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface ApplicationContext extends ListableBeanFactory {
+}
+interface ConfigurableApplicationContext extends ApplicationContext {
+    void refresh() throws BeansException;
+}
+note top of ConfigurableApplicationContext: 提供容器刷新的能力
+abstract class AbstractApplicationContext extends DefaultResourceLoader implements ConfigurableApplicationContext {
+void refresh();
+}
+note left of AbstractApplicationContext: 实现refresh的主流程模板。\r\n1. 创建beanFactory，并加载BeanDefinition\r\n2. 获取beanFactory（用1的结果，为后面传入参数）\r\n3. 在将Bean对象实例化之前，执行BeanFactoryPostProcessor中的操作（自己做了）\r\n4. BeanPostProcessor需要在Bean对象实例化之前进行注册（自己做了）\r\n 5. 提前实例化单例的bean对象
+abstract class AbstractRefreshableApplicationContext extends AbstractApplicationContext {
+    private DefaultListableBeanFactory beanFactory;
+}
+note left of AbstractRefreshableApplicationContext:完成1. 创建beanFactory，并加载BeanDefinition
+abstract class AbstractXmlApplicationContext extends AbstractRefreshableApplicationContext {
+}
+note top of AbstractXmlApplicationContext:真正完成加载BeanDefinition
+class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext{
+    private String[] configLocations;
+}
+note left of ClassPathXmlApplicationContext:用户提供配置文件的位置参数，此为整个流程的输入。
+
+interface BeanFactoryPostProcessor {
+    void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException;
+}
+note right of BeanFactoryPostProcessor:对BeanDefinition进行修改，发生在前面
+interface BeanPostProcessor {
+    Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException;
+    Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException;
+}
+note right of BeanPostProcessor:对Bean实例进行修改，发生在后面
+
+'组合
+AbstractRefreshableApplicationContext *-right- DefaultListableBeanFactory
+'聚合
+DefaultListableBeanFactory o-down-BeanFactoryPostProcessor
+DefaultListableBeanFactory o-up-BeanPostProcessor
+'依赖
+XmlBeanDefinitionReader <.right. AbstractXmlApplicationContext
+@enduml
