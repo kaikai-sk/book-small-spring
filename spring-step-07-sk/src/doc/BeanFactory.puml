@@ -1,0 +1,115 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface BeanFactory {
+    Object getBean(String name) throws BeansException;
+    Object getBean(String name, Object... args) throws BeansException;
+    <T> T getBean(String name, Class<T> requiredType) throws BeansException;
+}
+
+interface ListableBeanFactory extends BeanFactory {
+    <T> Map<String, T> getBeansOfType(Class<T> type) throws BeansException;
+    String[] getBeanDefinitionNames();
+}
+note top of ListableBeanFactory: 扩展BeanFactory；\n提供按照类型返回bean对象的能力；\n提供返回所有beanName的能力
+
+interface HierarchicalBeanFactory extends BeanFactory {
+}
+note top of HierarchicalBeanFactory: 扩展BeanFactory，\n提供获取父类BeanFactory的能力。
+
+interface ConfigurableBeanFactory extends HierarchicalBeanFactory, SingletonBeanRegistry {
+    String SCOPE_SINGLETON = "singleton";
+    String SCOPE_PROTOTYPE = "prototype";
+
+    void addBeanPostProcessor(BeanPostProcessor beanPostProcessor);
+    void destroySingletons();
+}
+note top of ConfigurableBeanFactory: 可以获取BeanPostProcessor、\nBeanClassLoader和销毁实例等\n的配置化接口。
+
+interface AutowireCapableBeanFactory extends BeanFactory {
+    Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName) throws BeansException;
+    Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName) throws BeansException;
+}
+note top of AutowireCapableBeanFactory: 提供用例可以自定义修改Bean对象的能力\n（在Bean对象实例化前后）。
+
+interface ConfigurableListableBeanFactory extends ListableBeanFactory, AutowireCapableBeanFactory, ConfigurableBeanFactory {
+    BeanDefinition getBeanDefinition(String beanName) throws BeansException;
+    void preInstantiateSingletons() throws BeansException;
+}
+note bottom of ConfigurableListableBeanFactory: 提供分析和修改Bean对象与预先实例化的接口。
+
+class DefaultSingletonBeanRegistry {
+    private Map<String, Object> singletonObjects;
+    private final Map<String, DisposableBean> disposableBeans;
+    public void destroySingletons()
+}
+abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory {
+}
+note right of AbstractBeanFactory: get bean的主流程：\n1. 直接获取单例实例\n 2. 获取BeanDefinition\n 3. 创建bean
+abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory implements AutowireCapableBeanFactory {
+    #void createBean();
+    #void registerDisposableBeanIfNecessary(String beanName, Object bean, BeanDefinition beanDefinition)
+}
+note top of AbstractAutowireCapableBeanFactory: create bean的主流程：\n 1 支持通过不同的策略创建实例\n 2 给Bean对象填充属性\n 3 初始化对象\n   3.1 执行BeanPostProcessor中的前置处理。\n   3.2  调用对象的初始化方法\n       （InitializingBean或者xml中配置的init-method）\n   3.3.执行BeanPostProcessor中的后置处理。\n 4. 注册实现了DisposableBean接口的bean对象\n 5. 注册单例对象
+class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory implements BeanDefinitionRegistry, ConfigurableListableBeanFactory {
+}
+
+'class ClassPathResource {
+'    private final String path;
+'    private ClassLoader classLoader;
+'}
+'
+'class FileSystemResource {
+'    private final File file;
+'    private final String path;
+'}
+'
+'class UrlResource {
+'    private final URL url;
+'}
+'
+'interface ResourceLoader {
+'    String CLASSPATH_URL_PREFIX;
+'    Resource getResource(String location);
+'}
+'
+'class DefaultResourceLoader implements ResourceLoader {
+'}
+'
+'interface BeanDefinitionReader {
+'    BeanDefinitionRegistry getRegistry();
+'    ResourceLoader getResourceLoader();
+'    void loadBeanDefinitions(Resource resource) throws BeansException;
+'    void loadBeanDefinitions(Resource... resources) throws BeansException;
+'    void loadBeanDefinitions(String location) throws BeansException;
+'}
+'
+'abstract class AbstractBeamDefinitionReader implements BeanDefinitionReader {
+'    private final BeanDefinitionRegistry registry;
+'    private final ResourceLoader resourceLoader;
+'    BeanDefinitionRegistry getRegistry();
+'    ResourceLoader getResourceLoader();
+'}
+'
+'class XmlBeanDefinitionReader extends AbstractBeamDefinitionReader {
+'    void loadBeanDefinitions(Resource resource) throws BeansException;
+'    void loadBeanDefinitions(Resource... resources) throws BeansException;
+'    void loadBeanDefinitions(String location) throws BeansException;
+'}
+'
+'interface BeanDefinitionRegistry {
+'    void registerBeanDefinition(String name, BeanDefinition beanDefinition);
+'    boolean containsBeanDefinition(String beanName);
+'}
+'
+''依赖
+'Resource <.. ResourceLoader
+'
+'Resource <|.up. ClassPathResource
+'Resource <|.up. FileSystemResource
+'Resource <|.up. UrlResource
+'
+'ResourceLoader <.right.. AbstractBeamDefinitionReader
+'
+'BeanDefinitionRegistry <.left.. XmlBeanDefinitionReader
+@enduml
