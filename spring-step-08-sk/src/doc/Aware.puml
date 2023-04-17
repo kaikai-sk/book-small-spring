@@ -1,0 +1,44 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface Aware {
+}
+note right of Aware:实现该接口的对象可以感知到Spring容器中的对象，\r\n例如ApplicationContext对象。
+interface ApplicationContextAware extends Aware {
+    void setApplicationContext(ApplicationContext applicationContext) throws BeansException;
+}
+note top of ApplicationContextAware: 实现此接口，会感知到自己所属的ApplicationContext
+interface BeanClassLoaderAware extends Aware {
+    void setBeanClassLoader(ClassLoader classLoader);
+}
+interface BeanFactoryAware extends Aware {
+    void setBeanFactory(BeanFactory beanFactory) throws BeansException;
+}
+interface BeanNameAware extends Aware {
+    void setBeanName(String name);
+}
+
+class AbstractAutowireCapableBeanFactory {
+    - invokeAwareMethods(String beanName, Object bean, BeanDefinition beanDefinition);
+}
+note right of AbstractAutowireCapableBeanFactory: 在initializeBean的时候，\r\n调用具体Aware接口的方法，\r\n将容器的自身内容传给Aware实现类对象。
+
+interface BeanPostProcessor {
+    Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException;
+    Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException;
+}
+class ApplicationContextAwareProcessor implements BeanPostProcessor{
+}
+note right of ApplicationContextAwareProcessor:通过Processor接口的方式将context传给Aware对象。
+
+class AbstractApplicationContext {
+    + refresh();
+}
+note right of AbstractApplicationContext: 在refresh流程中注册ApplicationContextAwareProcessor。\r\n 只有在这里才能拿到AppContext，传给Aware对象。
+
+'依赖
+Aware <.up. AbstractAutowireCapableBeanFactory
+ApplicationContextAwareProcessor <.. AbstractApplicationContext
+'关联
+BeanPostProcessor<--AbstractAutowireCapableBeanFactory
+@enduml

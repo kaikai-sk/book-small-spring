@@ -1,0 +1,35 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:加载XML或者扫描Class;
+:BeanDefinition;
+:BeanFactoryPostProcessor update BeanDefinition;
+note right:@Value:在所有的BeanDefinition加载完成之后，实例化Bean对象之前，提供修改BeanDefinition的机制；\n BeanDefinitionRegistryPostProcessor:提供注册对象的接口，如注册ORM映射器对象
+:resolveBeforInstantiation \nInstatiationAwareBeanPostProcessor;
+:Bean实例化;
+:InstatiationAwareBeanPostProcessor;
+note right:在Bean实例化之后执行此操作\npostProcessAfterInitialization
+:InstatiationAwareBeanPostProcessor;
+note right: 在Bean实例化之后，设置属性之前执行。\n postProcessPropertyValues
+:设置属性;
+:感知对象;
+note right:实现相应的Aware接口，可以感知到感兴趣的对象
+:BeanPostProcessor;
+note right: 前置处理：postProcessBeforeInitialization；\n特殊地，ApplicationContextAwareProcessor
+:初始化方法;
+note right:InitializingBean-->init-method;
+:BeanPostProcessor;
+note right: 后置处理：postProcessAfterInitialization；
+:使用Bean对象;
+note right: JDBC -> transaction-->ORM-Spring:通过BeanFactory整合后使用对象;
+if (Scope) then
+  :销毁Bean对象;
+  note right:DisposableBean -->\n destroy-method
+else (原型模式)
+  :销毁Bean对象;
+endif
+
+stop
+
+@enduml
