@@ -1,0 +1,44 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface FactoryBean<T> {
+    T getObject() throws Exception;
+    Class<?> getObjectType();
+    boolean isSingleton();
+}
+note top of FactoryBean:实现此接口的类对象内部包装了一个object，会将此object注入到容器中。
+
+class DefaultSingletonBeanRegistry {
+    - Object NULL_OBJECT;
+}
+
+class FactoryBeanRegistrySupport extends DefaultSingletonBeanRegistry {
+    - Map<String, Object> factoryBeanObjectCache;
+
+    protected getCachedObjectBeanForFactoryBean(String beanName);
+    protected Object getObjectFromFactoryBean(FactoryBean factory, String beanName);
+    private Object doGetObjectFromFactoryBean(final FactoryBean factory, final String beanName);
+}
+
+class AbstractBeanFactory extends FactoryBeanRegistrySupport {
+    protected <T> T doGetBean(final String name, final Object[] args);
+    private Object getObjectForBeanInstance(Object beanInstance, String beanName);
+}
+note right of AbstractBeanFactory: getObjectForBeanInstance对从容器中获取的或者创建出来的对象进行处理\n，如果是Factorybean对象，要取其内部的object。
+
+class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory {
+    protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException
+}
+note right of AbstractAutowireCapableBeanFactory: 根据beanDefinition中的内容进行判断\n，如果是单例，就注入到容器中，反之不会注入大容器中，直接返回。
+
+class BeanDefinition {
+    private scope = SCOPE_SINGLETON;
+    private boolean singleton;
+    private boolean prototype;
+}
+
+'依赖
+FactoryBean <.down. FactoryBeanRegistrySupport
+BeanDefinition <.. AbstractAutowireCapableBeanFactory
+
+@enduml
