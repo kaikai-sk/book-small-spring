@@ -1,0 +1,53 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface ApplicationEventPublisher {
+    public publishEvent(ApplicationEvent event);
+}
+interface ApplicationContext implements ApplicationEventPublisher{
+}
+interface ConfigurableApplicationContext implements ApplicationContext {
+}
+abstract class AbstractApplicationContext implements ConfigurableApplicationContext{
+    public publishEvent(ApplicationEvent event);
+}
+note right of AbstractApplicationContext
+context本身就是一个发布者，
+通过multicaster进行发布。
+end note
+
+interface ApplicationEventMulticaster {
+    void addApplicationListener(ApplicationListener<?> listener);
+    void removeApplicationListener(ApplicationListener<?> listener);
+    void multicastEvent(ApplicationEvent event);
+}
+note right of ApplicationEventMulticaster:被观察者的通用接口
+abstract SimpleApplicationEventMulticaster implements ApplicationEventMulticaster{
+    public final Set<ApplicationListener<ApplicationEvent>> applicationListeners;
+    protected Collection<ApplicationListener> getApplicationListeners(ApplicationEvent event);// 获取event的监听器
+    protected boolean supportsEvent(ApplicationListener applicationListener, ApplicationEvent event)// 判断哪些监听器是event的监听器
+}
+
+class EventObject {
+}
+note right of EventObject:java util内置的类
+class ApplicationEvent extends EventObject {
+    public ApplicationEvent(Object source);
+}
+class ApplicationContextEvent extends ApplicationEvent {
+    public ApplicationContextEvent(Object source);
+    public getApplicationContext();
+}
+class ContextRefreshedEvent extends ApplicationContextEvent {
+    public ContextRefreshedEvent(Object source);
+}
+class ContextClosedEvent extends ApplicationContextEvent {
+    public ContextClosedEvent(Object source);
+}
+
+'依赖
+SimpleApplicationEventMulticaster <.. AbstractApplicationContext: 依赖
+ContextRefreshedEvent <.. AbstractApplicationContext : 依赖
+ContextClosedEvent <.. AbstractApplicationContext : 依赖
+
+@enduml
