@@ -6,7 +6,13 @@ start
 :BeanDefinition;
 :BeanFactoryPostProcessor update BeanDefinition;
 note right:@Value:在所有的BeanDefinition加载完成之后，实例化Bean对象之前，提供修改BeanDefinition的机制；\n BeanDefinitionRegistryPostProcessor:提供注册对象的接口，如注册ORM映射器对象
-:resolveBeforInstantiation \nInstatiationAwareBeanPostProcessor;
+
+:resolveBeforeInstantiation \nInstatiationAwareBeanPostProcessor;
+note right
+Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName)
+对于满足条件的类，返回代理对象。便于实现AOP的功能。
+end note
+
 :Bean实例化;
 :InstatiationAwareBeanPostProcessor;
 note right:在Bean实例化之后执行此操作\npostProcessAfterInitialization
