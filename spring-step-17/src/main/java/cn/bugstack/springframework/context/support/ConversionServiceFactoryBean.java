@@ -70,6 +70,7 @@ public class ConversionServiceFactoryBean implements FactoryBean<ConversionServi
     }
 
     public void setConverters(Set<?> converters) {
+        new Exception().printStackTrace();
         this.converters = converters;
     }
 
