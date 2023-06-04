@@ -1,0 +1,121 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface PointCut {
+    getClassFilter();
+    getMethodMatcher();
+}
+interface ClassFilter {
+    matches(Class<?> clazz);
+}
+interface MethodMatcher {
+    matches(Method method, Class<?> targetClass);
+}
+class AspectJExpressionPointcut implements PointCut, ClassFilter, MethodMatcher {
+    private static final Set<PointcutPrimitive> SUPPORTED_PRIMITIVES;
+    private final PointcutExpression pointcutExpression;
+}
+
+class TargetSource {
+    private final Object target;
+    public Object getTarget();
+    public Class<?>[] getTargetClass()
+}
+note top of TargetSource
+getTargetClass:返回所实现的接口
+end note
+
+class ReflectiveMethodInvocation implements MethodInvocation {
+    protected final Object target;// 目标对象
+    protected final Method method;// 方法
+    protected final Object[] arguments;// 入参
+
+    public Object proceed();
+}
+note top of ReflectiveMethodInvocation
+proceed:method.invoke
+end note
+
+class AdvisedSupport {
+    private TargetSource targetSource;    // 被代理的目标对象
+    private MethodInterceptor methodInterceptor;// 方法拦截器
+    private MethodMatcher methodMatcher;// 方法匹配器，检查目标方法是否符合通知条件
+}
+
+interface AopProxy {
+    Object getProxy();
+}
+
+class Cglib2AopProxy implements AopProxy {
+    private final AdvisedSupport advised;
+}
+interface InvocationHandler {
+    public Object invoke(Object proxy, Method method, Object[] args)
+        throws Throwable;
+}
+class JdkDynamicAopProxy implements AopProxy, InvocationHandler {
+    private final AdvisedSupport advised;
+}
+
+interface BeanPostPorcessor {
+    void postProcessBeforeInstantiation(Object bean, String beanName);
+    void postProcessAfterInstantiation(Object bean, String beanName);
+}
+interface InstantiationAwareBeanPostProcessor extends BeanPostPorcessor {
+    void postProcessBeforeInstantiation(Class<?> beanClass, String beanName);
+}
+class DefaultAdvisorAutoProxyCreator implements InstantiationAwareBeanPostProcessor, BeanFactoryAware {
+    private DefaultListableBeanFactory beanFactory;
+}
+note right of DefaultAdvisorAutoProxyCreator
+在createBean的时候会调用postProcessBeforeInstantiation。
+遍历所有的AspectJExpressionPointcutAdvisor对象
+    如果当前要创建对象的类和advisor不匹配，跳过
+    创建AdvisedSupport对象，成员均可从advisor中获取
+    return new ProxyFactory(advisedSupport).getProxy();
+end note
+interface MethodInterceptor extends Interceptor {
+    Object invoke(MethodInvocation var1) throws Throwable;
+}
+class MethodBeforeAdviceInterceptor implements MethodInterceptor {
+    private MethodBeforeAdvice advice;
+}
+
+interface Advisor{
+    getAdvice();
+}
+interface PointCutAdvisor implements Advisor{
+    getPointcut();
+}
+class AspectJExpressionPointcutAdvisor implements PointCutAdvisor {
+    private AspectJExpressionPointcut pointCut;
+    private Advice advice;
+    private String expression;
+}
+
+class ProxyFactory {
+    private AdvisedSupport advisedSupport;
+
+    public getProxy();
+    private createAopProxy();
+}
+
+AdvisedSupport *-up- AspectJExpressionPointcut : 组合
+AdvisedSupport *-up- TargetSource : 组合
+AdvisedSupport *-up- ReflectiveMethodInvocation : 组合
+
+'依赖
+AdvisedSupport <.. Cglib2AopProxy: 依赖
+AdvisedSupport <.. JdkDynamicAopProxy : 依赖
+
+Cglib2AopProxy <.. ProxyFactory
+JdkDynamicAopProxy <.. ProxyFactory
+
+MethodBeforeAdviceInterceptor <.. DefaultAdvisorAutoProxyCreator: 依赖
+AspectJExpressionPointcutAdvisor <.. DefaultAdvisorAutoProxyCreator: 依赖
+ProxyFactory <.. DefaultAdvisorAutoProxyCreator: 依赖
+
+
+
+
+@enduml

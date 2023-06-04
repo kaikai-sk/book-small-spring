@@ -1,24 +1,21 @@
-package cn.bugstack.springframework.test;
+package com.springframework.test;
 
-import cn.bugstack.springframework.aop.AdvisedSupport;
-import cn.bugstack.springframework.aop.TargetSource;
-import cn.bugstack.springframework.aop.aspectj.AspectJExpressionPointcut;
-import cn.bugstack.springframework.aop.framework.Cglib2AopProxy;
-import cn.bugstack.springframework.aop.framework.JdkDynamicAopProxy;
-import cn.bugstack.springframework.context.support.ClassPathXmlApplicationContext;
-import cn.bugstack.springframework.jdbc.core.JdbcTemplate;
-import cn.bugstack.springframework.jdbc.datasource.DataSourceTransactionManager;
-import cn.bugstack.springframework.test.bean.JdbcService;
-import cn.bugstack.springframework.tx.transaction.annotation.AnnotationTransactionAttributeSource;
-import cn.bugstack.springframework.tx.transaction.interceptor.TransactionInterceptor;
+import com.springframework.aop.AdvisedSupport;
+import com.springframework.aop.TargetSource;
+import com.springframework.aop.aspectj.AspectJExpressionPointcut;
+import com.springframework.aop.framework.Cglib2AopProxy;
+import com.springframework.context.support.ClassPathXmlApplicationContext;
+import com.springframework.jdbc.core.JdbcTemplate;
+import com.springframework.jdbc.datasource.DataSourceTransactionManager;
+import com.springframework.test.bean.JdbcService;
+import com.springframework.tx.transaction.annotation.AnnotationTransactionAttributeSource;
+import com.springframework.tx.transaction.interceptor.TransactionInterceptor;
 import com.alibaba.druid.pool.DruidDataSource;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -28,7 +25,6 @@ import java.util.Map;
  *
  */
 public class ApiTest {
-
     private JdbcTemplate jdbcTemplate;
     private JdbcService jdbcService;
     private DataSource dataSource;
@@ -53,7 +49,7 @@ public class ApiTest {
         AdvisedSupport advisedSupport = new AdvisedSupport();
         advisedSupport.setTargetSource(new TargetSource(jdbcService));
         advisedSupport.setMethodInterceptor(interceptor);
-        advisedSupport.setMethodMatcher(new AspectJExpressionPointcut("execution(* cn.bugstack.springframework.test.bean.JdbcService.*(..))"));
+        advisedSupport.setMethodMatcher(new AspectJExpressionPointcut("execution(* com.springframework.test.bean.JdbcService.*(..))"));
 
         // 代理对象(Cglib2AopProxy)
         JdbcService proxy_cglib = (JdbcService) new Cglib2AopProxy(advisedSupport).getProxy();

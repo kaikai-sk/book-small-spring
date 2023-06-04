@@ -12,10 +12,10 @@
         <property name="password" value="123456"/>
     </bean>
 
-    <bean id="jdbcTemplate" class="cn.bugstack.springframework.jdbc.core.JdbcTemplate">
+    <bean id="jdbcTemplate" class="com.springframework.jdbc.core.JdbcTemplate">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <bean id="jdbcService" class="cn.bugstack.springframework.test.bean.JdbcService"/>
+    <bean id="jdbcService" class="com.springframework.test.bean.JdbcService"/>
 
 </beans>
